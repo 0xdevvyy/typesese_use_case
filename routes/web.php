@@ -3,18 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Typesense\Client;
 
-Route::get('/create-collection', function () {
-    $client = new Client([
-        'api_key' => config('services.typesense.api_key'),
-        'nodes' => [
-            [
-                'host' => config('services.typesense.host'),
-                'port' => config('services.typesense.port'),
-                'protocol' => config('services.typesense.protocol'),
-            ]
-        ],
-        'connection_timeout_seconds' => 2
-    ]);
+Route::get('/create-collection', function (Client $client) {
+
 
     // dd($client);
     $bookSchema = [
@@ -35,18 +25,8 @@ Route::get('/create-collection', function () {
     
 });
 
-Route::get('/import-collection', function () {
-    $client = new Client([
-        'api_key' => config('services.typesense.api_key'),
-        'nodes' => [
-            [
-                'host' => config('services.typesense.host'),
-                'port' => config('services.typesense.port'),
-                'protocol' => config('services.typesense.protocol'),
-            ]
-        ],
-        'connection_timeout_seconds' => 2
-    ]);
+Route::get('/import-collection', function (Client $client) {
+    
     
 
     // $client->collections->create($bookSchema);
@@ -57,28 +37,19 @@ Route::get('/import-collection', function () {
 });
 
 
-Route::get('/search-collection', function () {
-    $client = new Client([
-        'api_key' => config('services.typesense.api_key'),
-        'nodes' => [
-            [
-                'host' => config('services.typesense.host'),
-                'port' => config('services.typesense.port'),
-                'protocol' => config('services.typesense.protocol'),
-            ]
-        ],
-        'connection_timeout_seconds' => 2
-    ]);
+Route::get('/filter-search', function (Client $client) {
+
     
     $results = $client->collections['books']->documents->search([
         'q' => request('q'),
         'query_by' => 'title,authors', //look into title and author
         'sort_by' => 'ratings_count:desc',
-        'per_page' => 3
+        'per_page' => 3,
+        'filter_by' => 'publication_year:=[2000...2010, 2010...2020]' //range 2000 to 2010 and 2010 to 2020
     ]);
-    $titles = collect($results['hits'])->map(fn($hit) => $hit['document']['title']);
+    // $titles = collect($results['hits'])->map(fn($hit) => $hit['document']['title']);
 
-    return $titles;
+    return $results;
 });
 
 
